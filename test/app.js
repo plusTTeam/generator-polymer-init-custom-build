@@ -15,13 +15,13 @@ const path = require('path');
 const assert = require('yeoman-assert');
 const helpers = require('yeoman-test');
 
-describe('generator-polymer-init-custom-build:app', function() {
-  before(function() {
+describe('generator-polymer-init-plus-team:app', function(){
+  before(function(){
     return helpers.run(path.join(__dirname, '../generators/app'))
       .toPromise();
   });
 
-  it('creates files', function() {
+  it('creates files', function(){
     assert.file([
       'gulpfile.js',
       'package.json',
