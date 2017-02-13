@@ -13,6 +13,7 @@
 var del = require('del');
 var gulp = require('gulp');
 var gulpif = require('gulp-if');
+var gutil = require('gulp-util');
 var uglify = require('gulp-uglify');
 var cssSlam = require('css-slam').gulp;
 var imagemin = require('gulp-imagemin');
@@ -23,6 +24,7 @@ var historyApiFallback = require('connect-history-api-fallback');
 var mergeStream = require('merge-stream');
 var polymerBuild = require('polymer-build');
 var polymerJson = require('./polymer.json');
+var forkStream = polymerBuild.forkStream;
 var polymerProject = new polymerBuild.PolymerProject(polymerJson);
 var swPrecacheConfig = require('./sw-precache-config.js');
 
@@ -75,7 +77,7 @@ function waitFor(stream){
 gulp.task('default', function(){
   return new Promise(function(resolve, reject){ // eslint-disable-line no-unused-vars
     // Okay, so first thing we do is clear the build directory
-    log('Deleting ' + buildDirectory + ' directory...');
+    gutil.log('Deleting ' + buildDirectory + ' directory...');
     server.asDev = false;
     del([buildDirectory])
       .then(function(){
@@ -101,33 +103,46 @@ gulp.task('default', function(){
         // Okay, now let's merge them into a single build stream
         var buildStream = mergeStream(sourcesStream, dependenciesStream)
           .once('data', function(){
-            log('Analyzing build dependencies...');
+            gutil.log('Analyzing build dependencies...');
           });
+
+        // Fork your build stream to write directly to the 'build/unbundled' dir
+        var unbundledBuildStream = forkStream(buildStream)
+          .pipe(gulp.dest(buildDirectory + '/unbundled'));
 
         // If you want bundling, pass the stream to polymerProject.bundler.
         // This will bundle dependencies into your fragments so you can lazy
         // load them.
-        buildStream = buildStream.pipe(polymerProject.bundler);
-
-        // Okay, time to pipe to the build directory
-        buildStream = buildStream.pipe(gulp.dest(buildDirectory));
+        // Fork your build stream to bundle your application and write to the 'build/bundled' dir
+        var bundledBuildStream = forkStream(buildStream)
+          .pipe(polymerProject.bundler)
+          .pipe(gulp.dest(buildDirectory + '/bundled'));
 
         // waitFor the buildStream to complete
-        return waitFor(buildStream);
+        return waitFor(bundledBuildStream);
       })
       .then(function(){
         // Okay, now let's generate the Service Worker
-        log('Generating the Service Worker...');
+        gutil.log('Generating the Service Worker for bundled project...');
         return polymerBuild.addServiceWorker({
           project: polymerProject,
-          buildRoot: buildDirectory,
+          buildRoot: buildDirectory + '/bundled',
           bundled: true,
           swPrecacheConfig: swPrecacheConfig
         });
       })
       .then(function(){
+        // Okay, now let's generate the Service Worker
+        gutil.log('Generating the Service Worker for unbundled project...');
+        return polymerBuild.addServiceWorker({
+          project: polymerProject,
+          buildRoot: buildDirectory + '/unbundled',
+          swPrecacheConfig: swPrecacheConfig
+        });
+      })
+      .then(function(){
         // You did it!
-        log('Build complete!');
+        gutil.log('Build complete!');
         resolve();
       });
   });
