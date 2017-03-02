@@ -1,13 +1,3 @@
-/**
- * @license
- * Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
- * This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
- * The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
- * The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
- * Code distributed by Google as part of the polymer project is also
- * subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
- */
-
 'use strict';
 
 var del = require('del');
@@ -67,14 +57,21 @@ var server = {
 /**
  * Waits for the given ReadableStream
  */
-function waitFor(stream){
+function waitFor(streams){
+  var solved = streams.length;
   return new Promise(function(resolve, reject){
-    stream.on('end', resolve);
-    stream.on('error', reject);
+    streams.forEach(function(stream){
+      stream.on('end', function(){
+        if (!--solved) {
+          resolve();
+        }
+      });
+      stream.on('error', reject);
+    })
   });
 }
 
-gulp.task('default', function(){
+gulp.task('build', function(){
   return new Promise(function(resolve, reject){ // eslint-disable-line no-unused-vars
     // Lets create some inline code splitters in case you need them later in your build.
     var sourcesStreamSplitter = new polymerBuild.HtmlSplitter();
@@ -104,11 +101,10 @@ gulp.task('default', function(){
           // Uncomment these lines to add a few more example optimizations to your source files.
           .pipe(gulpif(/\.js$/, uglify())) // Install gulp-uglify to use
           .pipe(gulpif(/\.css$/, cssSlam())) // Install css-slam to use
-          .pipe(gulpif(/\.html$/, htmlMinifier())) // Install gulp-html-minify to use
+          .pipe(gulpif(/\.html$/, htmlMinifier({collapseWhitespace: true, minifyCSS: true}))) // Install gulp-html-minifier to use
 
           // Remember, you need to rejoin any split inline code when you're done.
           .pipe(sourcesStreamSplitter.rejoin());
-
 
         // Similarly, you can get your dependencies seperately and perform
         // any dependency-only optimizations here as well.
@@ -118,10 +114,10 @@ gulp.task('default', function(){
           // Uncomment these lines to add a few more example optimizations to your source files.
           .pipe(gulpif(/\.js$/, uglify())) // Install gulp-uglify to use
           .pipe(gulpif(/\.css$/, cssSlam())) // Install css-slam to use
-          .pipe(gulpif(/\.html$/, htmlMinifier())) // Install gulp-html-minify to use
+          .pipe(gulpif(/\.html$/, htmlMinifier({collapseWhitespace: true, minifyCSS: true}))) // Install gulp-html-minifier to use
 
+          // Remember, you need to rejoin any split inline code when you're done.
           .pipe(dependenciesStreamSplitter.rejoin());
-
 
         // Okay, now let's merge them into a single build stream
         var buildStream = mergeStream(sourcesStream, dependenciesStream)
@@ -142,29 +138,7 @@ gulp.task('default', function(){
           .pipe(gulp.dest(buildDirectory + '/bundled'));
 
         // waitFor the buildStream to complete
-        return waitFor(bundledBuildStream)
-          .then(function(){
-            return waitFor(unbundledBuildStream);
-          });
-      })
-      .then(function(){
-        // Okay, now let's generate the Service Worker
-        gutil.log('Generating the Service Worker for bundled project...');
-        return polymerBuild.addServiceWorker({
-          project: polymerProject,
-          buildRoot: buildDirectory + '/bundled',
-          bundled: true,
-          swPrecacheConfig: swPrecacheConfig
-        });
-      })
-      .then(function(){
-        // Okay, now let's generate the Service Worker
-        gutil.log('Generating the Service Worker for unbundled project...');
-        return polymerBuild.addServiceWorker({
-          project: polymerProject,
-          buildRoot: buildDirectory + '/unbundled',
-          swPrecacheConfig: swPrecacheConfig
-        });
+        return waitFor([bundledBuildStream, unbundledBuildStream]);
       })
       .then(function(){
         // You did it!
@@ -174,9 +148,29 @@ gulp.task('default', function(){
   });
 });
 
+gulp.task('service-worker', function(){
+  gutil.log('Generating the Service Worker for bundled project...');
+
+  return polymerBuild.addServiceWorker({
+    project: polymerProject,
+    buildRoot: buildDirectory + '/bundled',
+    bundled: true,
+    swPrecacheConfig: swPrecacheConfig
+  }).then(function(){
+    // Okay, now let's generate the Service Worker
+    gutil.log('Generating the Service Worker for unbundled project...');
+    return polymerBuild.addServiceWorker({
+      project: polymerProject,
+      buildRoot: buildDirectory + '/unbundled',
+      swPrecacheConfig: swPrecacheConfig
+    });
+  });
+});
+
 gulp.task('browserSync', function(){
   browserSync.init(server.config);
 });
 
 gulp.task('serve', gulp.series('browserSync'));
+gulp.task('default', gulp.series('build', 'service-worker'));
 gulp.task('serve:dist', gulp.series('default', 'browserSync'));
