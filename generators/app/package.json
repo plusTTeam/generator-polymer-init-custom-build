@@ -1,7 +1,7 @@
 {
   "name": "polymer-starter-kit-plus-team",
-  "version": "0.1.0",
-  "description": "A starting point for Polymer 1.0 custom build apps",
+  "version": "1.1.0",
+  "description": "A starting point for Polymer +Team apps",
   "license": "BSD-3-Clause",
   "scripts": {
     "lint": "eslint . --ext js,html --ignore-path .gitignore",
@@ -21,8 +21,9 @@
     "gulp-if": "^2.0.0",
     "gulp-imagemin": "^3.1.0",
     "gulp-uglify": "^2.0.1",
+    "gulp-util": "^3.0.8",
     "merge-stream": "^1.0.0",
-    "polymer-build": "^0.6.0"
+    "polymer-build": "^0.8.2"
   },
   "engines": {
     "node": ">=4.0"
