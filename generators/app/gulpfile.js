@@ -1,25 +1,25 @@
 'use strict';
 
-var del = require('del');
-var gulp = require('gulp');
-var gulpif = require('gulp-if');
-var gutil = require('gulp-util');
-var uglify = require('gulp-uglify');
-var cssSlam = require('css-slam').gulp;
-var imagemin = require('gulp-imagemin');
-var htmlMinifier = require('gulp-html-minifier');
-var browserSync = require('browser-sync').create();
-var historyApiFallback = require('connect-history-api-fallback');
+const del = require('del');
+const gulp = require('gulp');
+const gulpif = require('gulp-if');
+const gutil = require('gulp-util');
+const uglify = require('gulp-uglify');
+const cssSlam = require('css-slam').gulp;
+const imagemin = require('gulp-imagemin');
+const htmlMinifier = require('gulp-html-minifier');
+const browserSync = require('browser-sync').create();
+const historyApiFallback = require('connect-history-api-fallback');
 
-var mergeStream = require('merge-stream');
-var polymerBuild = require('polymer-build');
-var polymerJson = require('./polymer.json');
-var forkStream = polymerBuild.forkStream;
-var polymerProject = new polymerBuild.PolymerProject(polymerJson);
-var swPrecacheConfig = require('./sw-precache-config.js');
+const mergeStream = require('merge-stream');
+const polymerBuild = require('polymer-build');
+const polymerJson = require('polymer.json');
+const forkStream = polymerBuild.forkStream;
+const polymerProject = new polymerBuild.PolymerProject(polymerJson);
+const swPrecacheConfig = require('./../../../test/sw-precache-config.js');
 
-var buildDirectory = 'build';
-var config = {
+const buildDirectory = 'build';
+const config = {
   paths: {
     html: ['./src/**/*.html', './index.html'],
     css: ['./src/styles/**/*.css'],
@@ -29,7 +29,7 @@ var config = {
     }
   }
 };
-var server = {
+const server = {
   asDev: true,
   dev: {
     port: 5000,
@@ -58,10 +58,10 @@ var server = {
  * Waits for the given ReadableStream
  */
 function waitFor(streams){
-  var solved = streams.length;
-  return new Promise(function(resolve, reject){
-    streams.forEach(function(stream){
-      stream.on('end', function(){
+  let solved = streams.length;
+  return new Promise( (resolve, reject) => {
+    streams.forEach((stream) => {
+      stream.on('end', () => {
         if (!--solved) {
           resolve();
         }
@@ -71,21 +71,21 @@ function waitFor(streams){
   });
 }
 
-gulp.task('build', function(){
-  return new Promise(function(resolve, reject){ // eslint-disable-line no-unused-vars
+gulp.task('build', () => {
+  return new Promise( (resolve, reject) => { // eslint-disable-line no-unused-vars
     // Lets create some inline code splitters in case you need them later in your build.
-    var sourcesStreamSplitter = new polymerBuild.HtmlSplitter();
-    var dependenciesStreamSplitter = new polymerBuild.HtmlSplitter();
+    let sourcesStreamSplitter = new polymerBuild.HtmlSplitter();
+    let dependenciesStreamSplitter = new polymerBuild.HtmlSplitter();
 
     // Okay, so first thing we do is clear the build directory
     gutil.log('Deleting ' + buildDirectory + ' directory...');
     server.asDev = false;
     del([buildDirectory])
-      .then(function(){
+      .then( () => {
         // Let's start by getting your source files. These are all the files
         // in your `src/` directory, or those that match your polymer.json
         // "sources"  property if you provided one.
-        var sourcesStream = polymerProject.sources()
+        let sourcesStream = polymerProject.sources()
 
         // If you want to optimize, minify, compile, or otherwise process
         // any of your source code for production, you can do so here before
@@ -108,7 +108,7 @@ gulp.task('build', function(){
 
         // Similarly, you can get your dependencies seperately and perform
         // any dependency-only optimizations here as well.
-        var dependenciesStream = polymerProject.dependencies()
+        let dependenciesStream = polymerProject.dependencies()
           .pipe(dependenciesStreamSplitter.split())
 
           // Uncomment these lines to add a few more example optimizations to your source files.
@@ -120,27 +120,27 @@ gulp.task('build', function(){
           .pipe(dependenciesStreamSplitter.rejoin());
 
         // Okay, now let's merge them into a single build stream
-        var buildStream = mergeStream(sourcesStream, dependenciesStream)
-          .once('data', function(){
+        let buildStream = mergeStream(sourcesStream, dependenciesStream)
+          .once('data', () => {
             gutil.log('Analyzing build dependencies...');
           });
 
         // Fork your build stream to write directly to the 'build/unbundled' dir
-        var unbundledBuildStream = forkStream(buildStream)
+        let unbundledBuildStream = forkStream(buildStream)
           .pipe(gulp.dest(buildDirectory + '/unbundled'));
 
         // If you want bundling, pass the stream to polymerProject.bundler.
         // This will bundle dependencies into your fragments so you can lazy
         // load them.
         // Fork your build stream to bundle your application and write to the 'build/bundled' dir
-        var bundledBuildStream = forkStream(buildStream)
+        let bundledBuildStream = forkStream(buildStream)
           .pipe(polymerProject.bundler)
           .pipe(gulp.dest(buildDirectory + '/bundled'));
 
         // waitFor the buildStream to complete
         return waitFor([bundledBuildStream, unbundledBuildStream]);
       })
-      .then(function(){
+      .then( () => {
         // You did it!
         gutil.log('Build complete!');
         resolve();
@@ -148,7 +148,7 @@ gulp.task('build', function(){
   });
 });
 
-gulp.task('service-worker', function(){
+gulp.task('service-worker', () => {
   gutil.log('Generating the Service Worker for bundled project...');
 
   return polymerBuild.addServiceWorker({
@@ -156,7 +156,7 @@ gulp.task('service-worker', function(){
     buildRoot: buildDirectory + '/bundled',
     bundled: true,
     swPrecacheConfig: swPrecacheConfig
-  }).then(function(){
+  }).then( () => {
     // Okay, now let's generate the Service Worker
     gutil.log('Generating the Service Worker for unbundled project...');
     return polymerBuild.addServiceWorker({
@@ -167,7 +167,7 @@ gulp.task('service-worker', function(){
   });
 });
 
-gulp.task('browserSync', function(){
+gulp.task('browserSync', () => {
   browserSync.init(server.config);
 });
 

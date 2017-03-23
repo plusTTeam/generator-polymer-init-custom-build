@@ -2,9 +2,7 @@
 
 [![Build Status](https://travis-ci.org/PolymerElements/generator-polymer-init-custom-build.svg?branch=master)](https://travis-ci.org/PolymerElements/generator-polymer-init-custom-build)
 
-This template is a starting point for building apps using Polymer Starter Kit
-with a custom gulp process leveraging [polymer-build](https://github.com/Polymer/polymer-build),
-the library powering [Polymer CLI](https://github.com/Polymer/polymer-cli).
+This generator you can use to build apps using Polymer Starter Kit by PlusTeam with gulp process.
 
 ### Setup
 
@@ -15,7 +13,7 @@ generator-polymer-init-custom-build using [npm](https://www.npmjs.com) (we
 assume you have pre-installed [node.js](https://nodejs.org)).
 
     npm install -g polymer-cli
-    npm install -g generator-polymer-init-custom-build
+    npm install -g plusTTeam/generator-polymer-init-custom-build
 
 ##### Initialize project from template
 
@@ -23,7 +21,7 @@ Generate your new project using `polymer init`:
 
     mkdir my-app
     cd my-app
-    polymer init custom-build
+    polymer init plus-team
 
 ### Start the development server
 
