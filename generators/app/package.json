@@ -22,8 +22,8 @@
     "gulp-imagemin": "^3.1.0",
     "gulp-uglify": "^2.0.1",
     "gulp-util": "^3.0.8",
-    "merge-stream": "^1.0.0",
-    "polymer-build": "^0.8.2"
+    "merge-stream": "^1.0.1",
+    "polymer-build": "^0.9.1"
   },
   "engines": {
     "node": ">=4.0"

@@ -120,6 +120,7 @@ gulp.task('build', () => {
           .pipe(dependenciesStreamSplitter.rejoin());
 
         // Okay, now let's merge them into a single build stream
+        // Okay, now let's merge your sources & dependencies together into a single build stream.
         let buildStream = mergeStream(sourcesStream, dependenciesStream)
           .once('data', () => {
             gutil.log('Analyzing build dependencies...');
