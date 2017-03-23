@@ -1,7 +1,7 @@
 {
   "name": "generator-polymer-init-plus-team",
-  "version": "0.1.0",
-  "description": "A starting point for building apps using polymer-build",
+  "version": "2.0.2",
+  "description": "PlusTeam generator to build apps using polymer-build",
   "authors": [
     "The +Team Devs"
   ],
