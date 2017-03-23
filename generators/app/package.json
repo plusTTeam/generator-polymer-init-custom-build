@@ -6,7 +6,9 @@
   "scripts": {
     "lint": "eslint . --ext js,html --ignore-path .gitignore",
     "test": "npm run lint && polymer test",
-    "build": "gulp build"
+    "bundled": "polymer build --js-minify --css-minify --html-minify --add-service-worker --bundle",
+    "unbundled": "polymer build --js-minify --css-minify --html-minify --add-service-worker",
+    "build": "npm run unbundled"
   },
   "devDependencies": {
     "browser-sync": "^2.18.6",
