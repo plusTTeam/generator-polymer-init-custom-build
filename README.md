@@ -1,6 +1,6 @@
 # generator-polymer-init-custom-build
 
-[![Build Status](https://travis-ci.org/PolymerElements/generator-polymer-init-custom-build.svg?branch=master)](https://travis-ci.org/PolymerElements/generator-polymer-init-custom-build)
+[![Build Status](https://travis-ci.org/plusTTeam/generator-polymer-init-custom-build.svg?branch=master)](https://travis-ci.org/plusTTeam/generator-polymer-init-custom-build)
 
 This generator you can use to build apps using Polymer Starter Kit by PlusTeam with gulp process.
 
